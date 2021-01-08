@@ -1,0 +1,2 @@
+digraph g {
+node [fontcolor="black", height=0.5, color="black"] [shape=oval, style=filled, color=lightblue]	edge  [color="black", dir=fordware]  }

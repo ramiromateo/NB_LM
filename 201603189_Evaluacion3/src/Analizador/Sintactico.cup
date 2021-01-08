@@ -1,0 +1,91 @@
+package Analizador;
+
+import java_cup.runtime.Symbol;
+import java.util.LinkedList;
+import pkg201603189_evaluacion3.*;
+
+//PARSER 
+parser code
+{://Codigo visible
+
+    public LinkedList<Intruccion> AST;
+    
+    public void syntax_error(Symbol s){
+        System.out.println("Error R de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1) );
+        //Inicio.lisErrores.add("Error de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1)+" Se esperaba otro token\n");       
+    }
+
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{ 
+        System.out.println("Error NR de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1) );
+    }
+    
+    public LinkedList<Intruccion> getAST() {
+        return AST;
+    }
+:}
+
+action code
+{://Codigo de usuario
+    
+:}
+
+
+terminal String RIMPRIMIR,RInt,RDouble;
+terminal String PTCOMA,PARIZQ,PARDER,MAS,MENOS,POR,DIVIDIDO;
+terminal String DIFERENTE,YLOGICO,OLOGICO,MENQUE,MAYQUE,IGUAL;
+terminal String IDENTIFICADOR,ENTERO,DECIMAL;
+terminal String UMENOS,NEGACION;
+
+nonterminal Inicio;
+nonterminal LinkedList<Intruccion> Sentencias;
+nonterminal Intruccion Sentencia;
+
+non terminal Operacion Expresion;
+non terminal Operacion Exp;
+
+precedence left MAS,MENOS;
+precedence left POR,DIVIDIDO;
+precedence right UMENOS; 
+
+
+start with Inicio;
+
+Inicio::=Sentencias:a{:
+    
+    parser.AST=a;
+:}
+;
+Sentencias::=Sentencias:list Sentencia:instru{:RESULT=list; RESULT.add(instru);:}
+            |Sentencia:intru{:RESULT=new LinkedList<>(); RESULT.add(intru);:}
+;
+
+
+Sentencia::=RIMPRIMIR PARIZQ Expresion:a PARDER PTCOMA                          {:RESULT=new Imprimir(a);:}
+
+            | RInt IDENTIFICADOR:id IGUAL Expresion:a PTCOMA {:RESULT=new Declaracion(id, Simbolo.Tipo.Num,a);:}
+            | RDouble IDENTIFICADOR:ids IGUAL Expresion:a PTCOMA{:RESULT=new Declaracion(ids, Simbolo.Tipo.Num,a);:}
+            | error
+;
+
+
+
+Expresion::=PARIZQ Expresion:a PARDER                                {:RESULT=a;:}
+            |Expresion:a MAS Expresion:b                                {:RESULT=new Operacion(a,b,Operacion.TipoOperacion.Suma);:}
+            |Expresion:a MENOS Expresion:b                              {:RESULT=new Operacion(a,b,Operacion.TipoOperacion.Resta);:}
+            |Expresion:a POR Expresion:b                                {:RESULT=new Operacion(a,b,Operacion.TipoOperacion.Multiplicacion);:}
+            |Expresion:a DIVIDIDO Expresion:b                           {:RESULT=new Operacion(a,b,Operacion.TipoOperacion.Division);:}
+            |MENOS Expresion:a                                        {:RESULT=new Operacion(a,Operacion.TipoOperacion.Negativo);:}%prec UMENOS     
+            |ENTERO:a                                                 {:RESULT=new Operacion(new Double(a));:}
+            |DECIMAL:a                                                {:RESULT=new Operacion(new Double(a));:}
+            |IDENTIFICADOR: a                                         {:RESULT=new Operacion(a,Operacion.TipoOperacion.Identificador);:}
+            |Expresion:a MAYQUE Expresion:b                                {:RESULT=new Operacion(a,b,Operacion.TipoOperacion.MayorQue);:}
+            |Expresion:a MENQUE Expresion:b                                {:RESULT=new Operacion(a,b,Operacion.TipoOperacion.MenorQue);:}
+            |Expresion:a MAYQUE IGUAL Expresion:b                                {:RESULT=new Operacion(a,b,Operacion.TipoOperacion.MayorIgualQue);:}
+            |Expresion:a MENQUE IGUAL Expresion:b                                {:RESULT=new Operacion(a,b,Operacion.TipoOperacion.MenorIgualQue);:}
+            |Expresion:a DIFERENTE Expresion:b                                {:RESULT=new Operacion(a,b,Operacion.TipoOperacion.Diferente);:}
+            |Expresion:a IGUAL IGUAL Expresion:b                                {:RESULT=new Operacion(a,b,Operacion.TipoOperacion.Igual);:}
+            
+            |Expresion:a YLOGICO IGUAL Expresion:b                                {:RESULT=new Operacion(a,b,Operacion.TipoOperacion.YLogico);:}
+            |Expresion:a OLOGICO IGUAL Expresion:b                                {:RESULT=new Operacion(a,b,Operacion.TipoOperacion.OLogico);:}
+            |NEGACION Expresion:b                                {:RESULT=new Operacion(b,Operacion.TipoOperacion.Negacion);:}
+;

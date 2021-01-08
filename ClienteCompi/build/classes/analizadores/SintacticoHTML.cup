@@ -1,0 +1,174 @@
+package analizadores;
+
+
+import java_cup.runtime.Symbol;
+
+parser code
+{:
+
+    //Metodo al que se llama automaticamente ante algun error sintactico
+    public void syntax_error(Symbol s)
+    {        
+        if(s != null && s.value !=null){
+            String lexema = s.value.toString();
+            int fila = s.right;
+            int columna = s.left;
+            System.out.println("Error Sintactico: " + lexema + " en Fila: " + fila + " Columna: " + columna);
+
+        }else {
+            System.out.println("Error Sintactico");
+        }
+        
+    }
+
+    //Metodo al que se llama en el momento en que ya no es posible una recuperacion de errores
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception
+    {        
+      if(s != null && s.value !=null){
+            String lexema = s.value.toString();
+            int fila = s.right;
+            int columna = s.left;
+          	System.out.println("Error Sintactico: " + lexema + " en Fila: " + fila + " Columna: " + columna);
+
+        }else {
+            System.out.println("Error Sintactico");
+        }
+    }
+:}
+
+action code
+{::}
+
+
+terminal abre, cierra, fin, igual, html, head, body, title, table, th, tr, td;
+terminal div, p, br, hr, h1, h2, h3, atributo, valor;
+terminal finhtml, finhead, finbody, fintitle, findiv, finp, finh1, finh2;
+terminal finh3, fintable, fintr, finth, fintd;
+
+non terminal EPSILON, INICIO, HTML, HEAD, BODY, CUERPO, TITLE, DIV, ESTRUCTURA;
+non terminal PE, H1, H2, H3, BR, HR, TABLA, TR, COSA, COSADOS, FILA, TH, TD;
+non terminal ABRE_HTML, CIERRA_HTML, ABRE_HEAD, CIERRA_HEAD, ABRE_BODY, CIERRA_BODY;
+non terminal ABRE_TITLE, CIERRA_TITLE, ABRE_DIV, CIERRA_DIV, ABRE_PE, CIERRA_PE;
+non terminal ABRE_H1, CIERRA_H1, ABRE_H2, CIERRA_H2, ABRE_H3, CIERRA_H3;
+non terminal ABRE_TABLA, CIERRA_TABLA, ABRE_TR, CIERRA_TR, ABRE_TH, CIERRA_TH;
+non terminal ABRE_TD, CIERRA_TD, ATT;
+
+
+precedence right fin;
+
+start with INICIO;
+
+EPSILON ::=     ;
+
+INICIO ::=		HTML;
+
+HTML ::=		ABRE_HTML HEAD BODY CIERRA_HTML;
+
+HEAD ::= 		ABRE_HEAD CUERPO CIERRA_HEAD;
+
+BODY ::=		ABRE_BODY CUERPO CIERRA_BODY;
+
+CUERPO ::=		abre ESTRUCTURA CUERPO
+				|EPSILON;
+
+ESTRUCTURA ::=	TABLA
+				|TITLE
+				|DIV
+				|PE
+				|H1
+				|H2
+				|H3
+				|BR
+				|HR
+				|error;
+
+TITLE ::=		ABRE_TITLE CUERPO CIERRA_TITLE;
+
+DIV ::=			ABRE_DIV CUERPO CIERRA_DIV;
+
+PE ::=			ABRE_PE CUERPO CIERRA_PE;
+
+H1 ::=			ABRE_H1 CUERPO CIERRA_H1;
+
+H2 ::=			ABRE_H2 CUERPO CIERRA_H2;
+
+H3 ::=			ABRE_H3 CUERPO CIERRA_H3;
+
+TABLA ::= 		ABRE_TABLA COSA CIERRA_TABLA;
+
+COSA ::= 		abre TR COSA
+				|EPSILON;
+
+TR ::=			ABRE_TR COSADOS CIERRA_TR;
+
+COSADOS ::= 	abre FILA COSADOS
+				|EPSILON;
+
+FILA ::= 		TH
+				|TD;
+
+TH ::=			ABRE_TH CUERPO CIERRA_TH;
+
+TD ::= 			ABRE_TD CUERPO CIERRA_TD;
+
+ATT ::=			atributo igual valor ATT
+				|EPSILON;
+
+ABRE_HTML ::= 	abre html ATT cierra;
+
+ABRE_HEAD ::= 	abre head ATT cierra;
+
+ABRE_BODY ::= 	abre body ATT cierra;
+
+ABRE_TITLE ::= 	title ATT cierra;
+
+ABRE_DIV ::= 	div ATT cierra;
+
+ABRE_PE ::= 	p ATT cierra;
+
+ABRE_H1 ::= 	h1 ATT cierra;
+
+ABRE_H2 ::= 	h2 ATT cierra;
+
+ABRE_H3 ::= 	h3 ATT cierra;
+
+ABRE_TABLA ::= 	table ATT cierra;
+
+ABRE_TR ::= 	tr ATT cierra;
+
+ABRE_TH ::= 	th ATT cierra;
+
+ABRE_TD ::= 	td ATT cierra;
+
+//HOLA
+
+CIERRA_HTML ::= finhtml;
+
+CIERRA_HEAD ::= finhead;
+
+CIERRA_BODY ::= finbody;
+
+CIERRA_TITLE ::= fintitle;
+
+CIERRA_DIV ::= 	findiv;
+
+CIERRA_PE ::= 	finp;
+
+CIERRA_H1 ::= 	finh1;
+
+CIERRA_H2 ::= 	finh2;
+
+CIERRA_H3 ::= 	finh3;
+
+CIERRA_TABLA ::= fintable;
+
+CIERRA_TR ::= 	fintr;
+
+CIERRA_TH ::= 	finth;
+
+CIERRA_TD ::= 	fintd;
+
+BR ::=	abre br cierra;
+
+HR ::= abre hr cierra;
+

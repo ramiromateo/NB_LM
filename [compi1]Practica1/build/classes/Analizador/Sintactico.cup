@@ -1,0 +1,201 @@
+package Analizador;
+
+import java_cup.runtime.Symbol;
+import c1.practica1.*;
+
+
+//PARSER 
+parser code
+{://Codigo visible
+    
+    public void syntax_error(Symbol s){
+        System.out.println("Error R de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1) );
+        Inicio.lisErrores.add("Error de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1)+" Se esperaba otro token\n");       
+    }
+
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{ 
+        System.out.println("Error NR de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1) );
+    }
+
+:}
+
+action code
+{://Codigo de usuario
+    String tmp="";
+:}
+
+
+terminal String FINA,TAREA,HT,EC,PRA,PRO;
+terminal  ENCAB,CUERP,ESTUD,POND,REPOR,ESTIL;
+terminal  ETI_A,ETI_C,DIAG,IGUAL,DOSP,COMA,PORCE;
+terminal String SI,SD,CI,CD,II,IDE,CT,CV,CN,CNA,CNR;
+terminal String ENTERO,ID,CADENA;
+
+
+nonterminal INICIO, S,SEREPO, SENTENCIAENCABEZADO,ESTILOCUERPO,ATRIBUTO,SENTENCIAINTERIOR,ESTILOENCABEZADO,SENTENCIAESTUDIANTE,ATRIBUTOESTUDIANTE;
+nonterminal String ORIENTACION, VALUE;
+
+start with INICIO;
+
+INICIO::=S
+;
+S::=S ETI_A SENTENCIAINTERIOR ETI_C
+    |ETI_A SENTENCIAINTERIOR ETI_C
+    | error ETI_A 
+;
+/////////////////////////////////////////////////////////////////////
+SENTENCIAINTERIOR::=ENCAB SENTENCIAENCABEZADO DIAG
+                    |ESTIL ETI_C S ETI_A DIAG ESTIL
+                    |CUERP ETI_C S ETI_A DIAG CUERP
+                    |CUERP ESTILOCUERPO DIAG
+                    |POND ETI_C S ETI_A DIAG POND
+                    |REPOR ETI_C SEREPO ETI_A DIAG REPOR
+                    |ESTUD {:
+                                Inicio.lisEstudiante.add(new Estudiante());
+                            :}
+                              SENTENCIAESTUDIANTE DIAG
+                    |ID:actividad ID IGUAL ENTERO:porcentaje PORCE DIAG{:
+                                                                            if(actividad.equalsIgnoreCase("Tareas"))
+                                                                                Inicio.Tareas=Integer.parseInt(porcentaje);
+                                                                            else if(actividad.equalsIgnoreCase("Hojas_de_trabajo"))
+                                                                                Inicio.Hojas=Integer.parseInt(porcentaje);
+                                                                            else if(actividad.equalsIgnoreCase("Examenes_cortos"))
+                                                                                Inicio.ExamenCorto=Integer.parseInt(porcentaje);
+                                                                            else if(actividad.equalsIgnoreCase("Practicas"))
+                                                                                Inicio.Practicas=Integer.parseInt(porcentaje);
+                                                                            else if(actividad.equalsIgnoreCase("Proyectos"))
+                                                                                Inicio.Proyectos=Integer.parseInt(porcentaje);
+                                                                            else if(actividad.equalsIgnoreCase("Examen_Final"))
+                                                                                Inicio.Final=Integer.parseInt(porcentaje);
+                                                                        :}
+;
+SEREPO::=SEREPO ID:dato IGUAL ID:valu{:
+                                        if(dato.equalsIgnoreCase("ra")&& valu.equalsIgnoreCase("true"))
+                                            Inicio.ra=true;
+                                        if(dato.equalsIgnoreCase("rr")&& valu.equalsIgnoreCase("true"))
+                                            Inicio.rr=true;
+                                        if(dato.equalsIgnoreCase("re")&& valu.equalsIgnoreCase("true"))
+                                            Inicio.re=true;
+                                        if(dato.equalsIgnoreCase("rp")&& valu.equalsIgnoreCase("true"))
+                                            Inicio.rp=true;
+                                   :}
+         |ID:dato IGUAL ID:valu{:
+                                        if(dato.equalsIgnoreCase("ra")&& valu.equalsIgnoreCase("true"))
+                                            Inicio.ra=true;
+                                        if(dato.equalsIgnoreCase("rr")&& valu.equalsIgnoreCase("true"))
+                                            Inicio.rr=true;
+                                        if(dato.equalsIgnoreCase("re")&& valu.equalsIgnoreCase("true"))
+                                            Inicio.re=true;
+                                        if(dato.equalsIgnoreCase("rp")&& valu.equalsIgnoreCase("true"))
+                                            Inicio.rp=true;
+
+                                   :}
+;
+ESTILOCUERPO::=ESTILOCUERPO ESTILOENCABEZADO
+                |ESTILOENCABEZADO
+;
+//////////////////////////////////////////////////////////////////
+SENTENCIAESTUDIANTE::=SENTENCIAESTUDIANTE ATRIBUTOESTUDIANTE
+                      |ATRIBUTOESTUDIANTE
+;
+ATRIBUTOESTUDIANTE::=ID:dato IGUAL VALUE:valu{:
+                                                if(dato.equalsIgnoreCase("Carnet"))
+                                                    Inicio.lisEstudiante.get(Inicio.lisEstudiante.size()-1).setCarne(valu);
+                                                else if(dato.equalsIgnoreCase("Nombres"))
+                                                    Inicio.lisEstudiante.get(Inicio.lisEstudiante.size()-1).setApellido(valu);
+                                                else if(dato.equalsIgnoreCase("Apellidos"))
+                                                    Inicio.lisEstudiante.get(Inicio.lisEstudiante.size()-1).setNombre(valu);
+                                                :}
+                     |COMA
+                     |FINA:dato IGUAL VALUE:valu {:
+                                                 Inicio.lisEstudiante.get(Inicio.lisEstudiante.size()-1).setFina(Integer.parseInt(valu));
+                                                    :}
+                     |TAREA:dato IGUAL VALUE:valu{:
+                                                Inicio.lisEstudiante.get(Inicio.lisEstudiante.size()-1).addTarea(valu);
+                                                    :}
+                     |HT:dato IGUAL VALUE:valu{:
+                                                Inicio.lisEstudiante.get(Inicio.lisEstudiante.size()-1).addHT(valu);
+        
+                                                    :}
+                     |EC:dato IGUAL VALUE:valu{:
+                                                Inicio.lisEstudiante.get(Inicio.lisEstudiante.size()-1).addEC(valu);
+                                                    :}
+                    |PRA:dato IGUAL VALUE:valu{:
+                                                Inicio.lisEstudiante.get(Inicio.lisEstudiante.size()-1).addPra(valu);
+                                                    :}
+                    |PRO:dato IGUAL VALUE:valu{:
+                                                Inicio.lisEstudiante.get(Inicio.lisEstudiante.size()-1).addPro(valu);
+                                                    :}
+;
+
+SENTENCIAENCABEZADO::= SENTENCIAENCABEZADO ATRIBUTO
+                      |SENTENCIAENCABEZADO ESTILOENCABEZADO
+                      |ATRIBUTO
+                      |ESTILOENCABEZADO
+                      |error ATRIBUTO
+                       
+;
+
+ESTILOENCABEZADO::= CT IGUAL VALUE:cont 
+                                        {:
+                                           Encabezado.estiloDato=cont;
+                                        :}
+                   |CV IGUAL VALUE:cont 
+                                        {:
+                                           Encabezado.estiloContenido=cont;
+                                        :}
+                   | ID:dato IGUAL VALUE:cont
+                                                {:
+                                                    Encabezado.logo=cont;
+                                                :}
+                   |COMA
+                   |CN IGUAL VALUE
+                   |CNA IGUAL ID:ide{:
+                                        if(ide.equalsIgnoreCase("true"))Inicio.aprobado=true;
+                                    :}
+                   |CNR IGUAL ID:ide{:
+                                        if(ide.equalsIgnoreCase("true"))Inicio.reprobado=true;
+                                    :}
+                   |ID IGUAL ID
+;
+
+ATRIBUTO::= ORIENTACION:ori DOSP ID:dato IGUAL VALUE:cont 
+                {:
+                    Inicio.lisEncabezado.add(new Encabezado(ori,dato,cont));
+                :}
+             | error ORIENTACION
+;
+VALUE::=ENTERO:num 
+                {:
+                    RESULT=num;
+                :}
+        |CADENA:cad 
+                {:
+                    RESULT=cad;
+                :}
+;
+ORIENTACION::=SI:sid 
+                {:
+                    RESULT=sid;
+                :}
+            |SD:sde 
+                {:
+                    RESULT=sde;
+                :}
+            |CI:cin 
+                {:
+                    RESULT=cin;
+                :}
+            |CD:cdn 
+                {:
+                    RESULT=cdn;
+                :}
+            |II:iin 
+                {:
+                    RESULT=iin;
+                :}
+            |IDE:iden 
+                {:
+                    RESULT=iden;
+                :}
+;

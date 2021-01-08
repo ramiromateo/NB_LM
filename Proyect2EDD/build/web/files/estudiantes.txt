@@ -1,0 +1,7 @@
+18,me,como,6,6
+9,me,como,78,6
+78,me,como,25,6
+789,me,como,55,85
+7898,me,como,65,5
+894,me,como,99,9
+566,me,como,87,ola

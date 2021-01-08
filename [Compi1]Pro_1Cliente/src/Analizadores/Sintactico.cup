@@ -1,0 +1,130 @@
+package Analizadores;
+
+import java_cup.runtime.Symbol;
+import compi1.pro_1cliente.Registro;
+import compi1.pro_1cliente.Panel;
+import compi1.pro_1cliente.*;
+
+
+//PARSER 
+parser code
+{://Codigo visible
+    
+    public void syntax_error(Symbol s){
+        System.out.println("Error R de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1) );
+     //   Inicio.lisErrores.add("Error de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1)+" Se esperaba otro token\n");       
+    }
+
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{ 
+        System.out.println("Error NR de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1) );
+    }
+
+:}
+
+action code
+{://Codigo de usuario
+    String tmp="";
+:}
+
+//terminales***************
+
+
+
+
+
+
+
+
+terminal Tkn_reply,Tkn_Usuario,Tkn_ide,Tkn_registro,Tkn_menos,Tkn_dolar,Tkn_igual,Tkn_access;
+terminal Tkn_lista,Tkn_codigo,Tkn_propietario,Tkn_nombre,Tkn_direccion,Tkn_telefono,Tkn_modificar;
+terminal String Tkn_entero,Tkn_id,Tkn_cadena,Tkn_tienda,Tkn_eliminar,Tkn_sucursal,Tkn_producto,Tkn_cantidad,Tkn_marca,Tkn_tamaño,Tkn_color;
+terminal Tkn_precio;
+//noterminales********************
+nonterminal INICIO, S,SENTENCIAINTERIORREPLY,SENTENCIAUSER,LISTATIENDA,ATRIBUTOTIENDA,ATRIBUTOTIENDAFINAL,TIENDA,LISTAPRODUCTO,PRODUCTO,ATRIBUTOPRODUCTO,ATRIBUTOPRODUCTOFINAL;
+
+
+start with INICIO;
+
+INICIO::=S
+;
+S::=S Tkn_dolar Tkn_reply Tkn_dolar SENTENCIAINTERIORREPLY Tkn_dolar Tkn_reply Tkn_menos Tkn_dolar
+     |Tkn_dolar Tkn_reply Tkn_dolar SENTENCIAINTERIORREPLY Tkn_dolar Tkn_reply Tkn_menos Tkn_dolar
+;
+SENTENCIAINTERIORREPLY::=Tkn_dolar Tkn_Usuario Tkn_dolar SENTENCIAUSER Tkn_dolar Tkn_Usuario Tkn_menos Tkn_dolar
+                        |Tkn_dolar Tkn_tienda Tkn_dolar SENTENCIAUSER Tkn_dolar Tkn_tienda Tkn_menos Tkn_dolar
+                        |Tkn_dolar Tkn_producto Tkn_dolar SENTENCIAUSER Tkn_dolar Tkn_producto Tkn_menos Tkn_dolar
+                        |Tkn_dolar Tkn_lista Tkn_dolar LISTATIENDA Tkn_dolar Tkn_lista {:new InicioCliente("").setVisible(true);Registro.listTiendas.clear();:} Tkn_menos Tkn_dolar
+                        |Tkn_dolar Tkn_lista Tkn_dolar LISTAPRODUCTO  Tkn_dolar {:new Productos("").setVisible(true);Registro.listProductos.clear(); :} Tkn_lista  Tkn_menos Tkn_dolar
+                        |Tkn_dolar Tkn_lista Tkn_dolar{:Registro.listTiendas.clear();   :} Tkn_cadena:cad Tkn_dolar Tkn_lista {:
+                                                                                                                                if(cad.equalsIgnoreCase("vacio"))new InicioCliente("").setVisible(true);
+                                                                                                                                    else new Productos("").setVisible(true);
+                                                                                                                                 :} Tkn_menos Tkn_dolar
+;
+
+LISTAPRODUCTO::=LISTAPRODUCTO PRODUCTO
+                |PRODUCTO 
+;
+PRODUCTO::=Tkn_dolar Tkn_producto Tkn_dolar ATRIBUTOPRODUCTO Tkn_dolar {:
+                                                                            Registro.listProductos.add(new PanelProducto(Registro.arrr[0],Registro.arrr[1],Registro.arrr[2],Registro.arrr[3],Registro.arrr[4],Registro.arrr[5],Registro.arrr[6],Registro.arrr[7]));
+                                                                            for(String st:Registro.arrr)
+                                                                                st="";
+                                                                            
+                                                                 :} Tkn_producto Tkn_menos Tkn_dolar
+;
+ATRIBUTOPRODUCTO::=ATRIBUTOPRODUCTO ATRIBUTOPRODUCTOFINAL
+                   |ATRIBUTOPRODUCTOFINAL 
+;
+////atributos
+
+ATRIBUTOPRODUCTOFINAL::=Tkn_dolar Tkn_codigo Tkn_dolar  Tkn_entero:codi {:Registro.arrr[0]=codi;:}   Tkn_dolar Tkn_codigo Tkn_menos Tkn_dolar
+                      |Tkn_dolar Tkn_nombre Tkn_dolar    Tkn_cadena:nom {:Registro.arrr[1]=nom;:}     Tkn_dolar Tkn_nombre Tkn_menos Tkn_dolar
+                      |Tkn_dolar Tkn_cantidad Tkn_dolar  Tkn_entero:canti {:Registro.arrr[2]=canti;:} Tkn_dolar Tkn_cantidad Tkn_menos Tkn_dolar
+                      |Tkn_dolar Tkn_marca Tkn_dolar     Tkn_cadena:mar {:Registro.arrr[3]=mar;:}     Tkn_dolar Tkn_marca Tkn_menos Tkn_dolar
+                      |Tkn_dolar Tkn_color Tkn_dolar     Tkn_cadena:colo {:Registro.arrr[4]=colo;:}   Tkn_dolar Tkn_color Tkn_menos Tkn_dolar
+                      |Tkn_dolar Tkn_tamaño Tkn_dolar    Tkn_entero:tam {:Registro.arrr[5]=tam;:}     Tkn_dolar Tkn_tamaño Tkn_menos Tkn_dolar
+                      |Tkn_dolar Tkn_sucursal Tkn_dolar  Tkn_entero:sucu {:Registro.arrr[6]=sucu;:}   Tkn_dolar Tkn_sucursal Tkn_menos Tkn_dolar
+                      |Tkn_dolar Tkn_precio Tkn_dolar    Tkn_entero:tam {:Registro.arrr[7]=tam;:}     Tkn_dolar Tkn_precio Tkn_menos Tkn_dolar
+;
+
+///////////////////////////
+LISTATIENDA::=LISTATIENDA TIENDA
+              |TIENDA
+;
+
+
+TIENDA::=Tkn_dolar Tkn_tienda Tkn_dolar ATRIBUTOTIENDA Tkn_dolar{:
+                                                                            Registro.listTiendas.add(new Panel(Registro.arr[0],Registro.arr[1],Registro.arr[2],Registro.arr[3],Registro.arr[4]));
+                                                                            for(String st:Registro.arr)
+                                                                                st="";
+                                                                            
+                                                                 :} Tkn_tienda Tkn_menos Tkn_dolar
+         
+;
+ATRIBUTOTIENDA::=ATRIBUTOTIENDA ATRIBUTOTIENDAFINAL
+                 |ATRIBUTOTIENDAFINAL
+;
+ATRIBUTOTIENDAFINAL::= Tkn_dolar Tkn_codigo Tkn_dolar       Tkn_entero:codi {:Registro.arr[0]=codi;:} Tkn_dolar Tkn_codigo Tkn_menos Tkn_dolar
+                      |Tkn_dolar Tkn_propietario Tkn_dolar  Tkn_entero:propie {:Registro.arr[1]=propie;:} Tkn_dolar Tkn_propietario Tkn_menos Tkn_dolar
+                      |Tkn_dolar Tkn_nombre Tkn_dolar       Tkn_cadena:nom {:Registro.arr[2]=nom;:} Tkn_dolar Tkn_nombre Tkn_menos Tkn_dolar
+                      |Tkn_dolar Tkn_direccion Tkn_dolar    Tkn_cadena:dire {:Registro.arr[3]=dire;:} Tkn_dolar Tkn_direccion Tkn_menos Tkn_dolar
+                      |Tkn_dolar Tkn_telefono Tkn_dolar     Tkn_entero:tel {:Registro.arr[4]=tel;:} Tkn_dolar Tkn_telefono Tkn_menos Tkn_dolar
+                      
+             
+;
+
+SENTENCIAUSER::=Tkn_dolar Tkn_registro Tkn_ide Tkn_igual Tkn_entero:valent Tkn_dolar Tkn_id:valu {:
+                                                                                      Registro.Seregistro(valent, valu);
+                                                                                     :}Tkn_dolar Tkn_registro Tkn_menos Tkn_dolar
+                |Tkn_dolar Tkn_registro Tkn_ide Tkn_igual Tkn_entero:valent Tkn_sucursal Tkn_igual Tkn_entero Tkn_dolar Tkn_id:valu {:
+                                                                                      Registro.Seregistro(valent, valu);
+                                                                                     :}Tkn_dolar Tkn_registro Tkn_menos Tkn_dolar                                                                                     
+                |Tkn_dolar Tkn_ide Tkn_dolar  Tkn_entero:vale  Tkn_dolar Tkn_ide Tkn_menos Tkn_dolar      Tkn_dolar Tkn_access Tkn_dolar  Tkn_id:valid  Tkn_dolar{:
+                                                                                                                                                                    Registro.Ingresara(vale,valid);
+                                                                                                                                                                  :} Tkn_access Tkn_menos Tkn_dolar
+                |Tkn_dolar Tkn_modificar Tkn_ide Tkn_igual Tkn_entero:valent Tkn_dolar Tkn_id:val {:
+                                                                                        Registro.Semodifico(valent,val);
+                                                                                     :} Tkn_dolar Tkn_modificar Tkn_menos Tkn_dolar                                                                                                                                                                  
+                |Tkn_dolar Tkn_eliminar Tkn_ide Tkn_igual Tkn_entero:valent Tkn_dolar Tkn_id:val {:
+                                                                                        Registro.SeElimino(valent,val);
+                                                                                     :} Tkn_dolar Tkn_eliminar Tkn_menos Tkn_dolar                                                                                                                                                                  
+;

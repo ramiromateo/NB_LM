@@ -1,0 +1,94 @@
+package Analizadores;
+
+import java_cup.runtime.Symbol;
+import finalcompi1.*;
+
+//PARSER 
+parser code
+{://Codigo visible
+    
+    public void syntax_error(Symbol s){
+       System.out.println("Error R de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1) );
+     //   Inicio.lisErrores.add("Error de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1)+" Se esperaba otro token\n");       
+    }
+
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{ 
+        System.out.println("Error NR de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1) );
+    }
+
+:}
+
+action code
+{://Codigo de usuario
+    String tmp="";
+:}
+
+//terminales***************
+
+terminal Symbol Tkn_igual,Tkn_coma,Tkn_parA,Tkn_parC,Tkn_panel,Tkn_coA,Tkn_coC,Tkn_dibujar;
+terminal Symbol Tkn_entero,Tkn_id,Tkn_cadena;
+terminal Symbol Tkn_mas,Tkn_asterisco,Tkn_menos,Tkn_div,Tkn_And,Tkn_Or,Tkn_menor,Tkn_mayor,Tkn_igualigual,Tkn_diferente,Tkn_PuntoComa,Tkn_si,Tkn_llaA,Tkn_llaC,Tkn_enteroR,Tkn_Boleano,Tkn_Cad;
+
+
+
+
+
+//noterminales********************
+nonterminal Arbol INICIO, S,
+SENTENCIA,SENTENCIAAUX,LISTAID,ASIGNACIONES,DECLARACIONES,EXPRESIONES,VALUES,CONDICION;
+
+
+precedence left Tkn_mas, Tkn_menos;
+precedence left Tkn_asterisco, Tkn_div;
+precedence left Tkn_Or,Tkn_And;
+precedence left Tkn_menor,Tkn_mayor, Tkn_igualigual, Tkn_diferente;
+
+
+start with INICIO;
+
+INICIO::=S
+;
+S::=S  SENTENCIA
+    |SENTENCIA
+;
+SENTENCIA::=ASIGNACIONES
+            |DECLARACIONES
+            |EXPRESIONES
+            |SENTENCIAAUX
+;
+ASIGNACIONES::=Tkn_id Tkn_igual VALUES Tkn_PuntoComa
+                |Tkn_id Tkn_igual EXPRESIONES Tkn_PuntoComa
+;
+
+VALUES::=VALUES Tkn_mas VALUES 
+       |VALUES Tkn_asterisco VALUES 
+       |VALUES Tkn_menos VALUES 
+       |VALUES Tkn_div VALUES 
+       |Tkn_parA VALUES Tkn_parA
+       |Tkn_id 
+       |Tkn_entero
+       |Tkn_cadena
+;
+
+DECLARACIONES::=Tkn_entero LISTAID  Tkn_PuntoComa
+                Tkn_Boleano LISTAID  Tkn_PuntoComa
+                Tkn_Cad LISTAID  Tkn_PuntoComa
+;
+
+LISTAID::=LISTAID Tkn_coma Tkn_id
+         |Tkn_id:tkn{:Arbol arbol=new Arbol("Tkn_id",""+tkn.left,""+tkn.right,""+tkn.value);
+            
+          RESULT=arbol;
+                            :}          
+;
+EXPRESIONES::=CONDICION Tkn_And CONDICION
+               |CONDICION Tkn_Or CONDICION
+;
+CONDICION::=VALUES Tkn_menor VALUES
+           |VALUES Tkn_mayor VALUES
+           |VALUES Tkn_igualigual VALUES
+           |VALUES Tkn_diferente VALUES
+
+;
+
+SENTENCIAAUX::=Tkn_si  Tkn_parA EXPRESIONES  Tkn_parC Tkn_llaA S Tkn_llaC;

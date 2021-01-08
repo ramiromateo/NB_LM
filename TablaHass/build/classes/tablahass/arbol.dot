@@ -1,0 +1,54 @@
+digraph G {
+node [fontcolor="black", height=0.5, color="black"] [shape=oval, style=filled, color=lightblue]	edge  [color="black", dir=fordware] "Palabra: h
+Frecuencia:2
+FE:0"->"Palabra: d
+Frecuencia:2
+FE:0"->"Palabra: b
+Frecuencia:2
+FE:0"->"Palabra: a
+Frecuencia:2
+FE:0" "Palabra: a
+Frecuencia:2
+FE:0" "Palabra: b
+Frecuencia:2
+FE:0"->"Palabra: c
+Frecuencia:2
+FE:0" "Palabra: c
+Frecuencia:2
+FE:0" "Palabra: d
+Frecuencia:2
+FE:0"->"Palabra: f
+Frecuencia:2
+FE:0"->"Palabra: e
+Frecuencia:2
+FE:0" "Palabra: e
+Frecuencia:2
+FE:0" "Palabra: f
+Frecuencia:2
+FE:0"->"Palabra: g
+Frecuencia:2
+FE:0" "Palabra: g
+Frecuencia:2
+FE:0" "Palabra: h
+Frecuencia:2
+FE:0"->"Palabra: j
+Frecuencia:2
+FE:1"->"Palabra: i
+Frecuencia:2
+FE:0" "Palabra: i
+Frecuencia:2
+FE:0" "Palabra: j
+Frecuencia:2
+FE:1"->"Palabra: l
+Frecuencia:2
+FE:0"->"Palabra: k
+Frecuencia:2
+FE:0" "Palabra: k
+Frecuencia:2
+FE:0" "Palabra: l
+Frecuencia:2
+FE:0"->"Palabra: m
+Frecuencia:2
+FE:0" "Palabra: m
+Frecuencia:2
+FE:0" }

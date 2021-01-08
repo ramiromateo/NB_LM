@@ -1,0 +1,322 @@
+package analizadores;
+
+
+import java_cup.runtime.Symbol;
+
+import clientecompi.Juanson;
+import estructuras.Lista;
+import java_cup.runtime.Symbol;
+import javax.swing.JTextArea;
+import semantico.Expresion;
+
+parser code
+{:
+
+    //Metodo al que se llama automaticamente ante algun error sintactico
+    public void syntax_error(Symbol s)
+    {        
+        if(s != null && s.value !=null){
+            String lexema = s.value.toString();
+            int fila = s.right;
+            int columna = s.left;
+            System.out.println("Error Sintactico: " + lexema + " en Fila: " + fila + " Columna: " + columna);
+
+        }else {
+            System.out.println("Error Sintactico");
+        }
+        
+    }
+
+    //Metodo al que se llama en el momento en que ya no es posible una recuperacion de errores
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception
+    {        
+      if(s != null && s.value !=null){
+            String lexema = s.value.toString();
+            int fila = s.right;
+            int columna = s.left;
+          	System.out.println("Error Sintactico: " + lexema + " en Fila: " + fila + " Columna: " + columna);
+
+        }else {
+            System.out.println("Error Sintactico");
+        }
+    }
+
+    String clasificacion = "";
+    int index = 0;
+    String atributo = "";
+    String currentType = "";
+    boolean scr = false;
+    JTextArea consola;
+    Juanson objetoJson;
+    Lista<Simbolo> tablaDeSimbolos = new Lista();
+:}
+
+action code
+{:
+    private int obtenerIndice(Object obj, int fila){
+        Expresion exp = (Expresion)obj;
+        if(exp.getTipo().equals("entero")){
+            return Integer.parseInt(exp.getDato().toString());
+        }
+        consola.append("\nError Semántico en fila: " + fila + 
+            "\nEl indice del array debe ser entero" );
+        return -1;
+
+    }
+
+    private Expresion obtenerResult(String clasificacion, int index, String atributo, boolean score, int fila){
+        if(index != -1){
+            if(score){
+                double sc = objetoJson.getScore();
+                return new Expresion("decimal", ""+sc , fila);
+            }
+            String valor = objetoJson.getDato(clasificacion, index, atributo);
+            if(valor.startsWith("ERROR")){
+                consola.append("\nError Semántico en fila: " + fila + 
+                    "\nLos atributos buscados no existen" );
+                return new Expresion("ERROR", 0, fila);
+            }
+
+        }
+        return new Expresion("ERROR", 0, fila);
+    }
+
+    private Expresion obtenerValor(String identificador) {
+        Simbolo nuevo = tablaDeSimbolos.getObjeto(identificador);
+        if(nuevo != null){
+            Expresion exp = nuevo.getExp();
+            return exp;
+        }
+        consola.append("\nError Semántico: el símbolo " + identificador +
+            "no existe.");
+        return new Expresion("ERROR", 0, 0);
+
+    }
+
+    private void ingresarSimbolo(String tipo, String nombre, Object valor, int fila){
+        Expresion var = (Expresion)valor;
+        if(tablaDeSimbolos.pertenece(nombre)){
+            consola.append("\nError Sémantico: la variable " + nombre + " ya existe.");
+                    tablaDeSimbolos.insertar(new Simbolo(tipo, nombre, 0, "NULO"));
+        } else { 
+
+            if(tipo.equals(var.getTipo())){
+                tablaDeSimbolos.insertar(new Simbolo(tipo, nombre, 0, var.getValor()));
+            }
+            else {
+                consola.append("\nError Sémantico: no es posible asignar, tipos no compatibles en"+
+                    "\n" + nombre + " Fila: " + fila);
+                    tablaDeSimbolos.insertar(new Simbolo(tipo, nombre, 0, "NULO"));
+            }
+        }
+    }
+    private void asignarSimbolo(String id, Object numero, Object exp){
+        int des = (int)numero;
+        Expresion expre = (Expresion)exp;
+        if(tablaDeSimbolos.pertenece(id)){
+            Simbolo s = tablaDeSimbolos.getObjeto(id);
+            if(s.getTipo().equals(expre.getTipo())){
+                switch (des){
+                    case 0:
+                        s.igual(expre);
+                        break;
+                    case 1:
+                        s.igualMas(expre);
+                        break;
+                    case 2:
+                        s.igualMenos(expre);
+                        break;
+                    case 3:
+                        s.igualPor(expre);
+                        break
+                }
+            } else {
+                consola.append("Error Semántico: El simbolo " + id + " no es compatible con ese tipo.");
+            }
+        }else{
+            consola.append("Error Semántico: El simbolo " + id + " no ha sido declarado.");
+        }
+    }
+
+    private Expresion operacion(Object a, Object b, int selec, int fila){
+        if(selec == 0){
+            Expresion resultante = Expresion.sumar(a, b);
+            if(resultante.getTipo().equals("ERROR")){
+                consola.append("\nError Semántico en fila: " + fila + " tipos incompatibles.");
+                return new Expresion("ERROR_IGNORAR", "NULO", 0);
+            }
+            if(resultante.getTipo().equals("ERROR_NULO")){
+                consola.append("\nError Semántico en fila: " + fila + " valor nulo, no declarado.");
+                return new Expresion("ERROR_IGNORAR", "NULO", 0);
+            }
+            return resultante;
+        }
+        if(selec == 1){
+            Expresion resultante = Expresion.restar(a, b);
+            if(resultante.getTipo().equals("ERROR")){
+                consola.append("\nError Semántico en fila: " + fila + " tipos incompatibles.");
+                return new Expresion("ERROR_IGNORAR", "NULO", 0);
+            }
+            if(resultante.getTipo().equals("ERROR_NULO")){
+                consola.append("\nError Semántico en fila: " + fila + " valor nulo, no declarado.");
+                return new Expresion("ERROR_IGNORAR", "NULO", 0);
+            }
+            return resultante;
+        }
+        if(selec == 2){
+            Expresion resultante = Expresion.dividir(a, b);
+            if(resultante.getTipo().equals("ERROR")){
+                consola.append("\nError Semántico en fila: " + fila + " tipos incompatibles.");
+                return new Expresion("ERROR_IGNORAR", "NULO", 0);
+            }
+            if(resultante.getTipo().equals("ERROR_NULO")){
+                consola.append("\nError Semántico en fila: " + fila + " valor nulo, no declarado.");
+                return new Expresion("ERROR_IGNORAR", "NULO", 0);
+            }
+            return resultante;
+        }
+        if(selec == 3){
+            Expresion resultante = Expresion.multiplicar(a, b);
+            if(resultante.getTipo().equals("ERROR")){
+                consola.append("\nError Semántico en fila: " + fila + " tipos incompatibles.");
+                return new Expresion("ERROR_IGNORAR", "NULO", 0);
+            }
+            if(resultante.getTipo().equals("ERROR_NULO")){
+                consola.append("\nError Semántico en fila: " + fila + " valor nulo, no declarado.");
+                return new Expresion("ERROR_IGNORAR", "NULO", 0);
+            }
+            return resultante;
+        }
+        if(selec == 4){
+            Expresion resultante = Expresion.modulo(a, b);
+            if(resultante.getTipo().equals("ERROR")){
+                consola.append("\nError Semántico en fila: " + fila + " tipos incompatibles.");
+                return new Expresion("ERROR_IGNORAR", "NULO", 0);
+            }
+            if(resultante.getTipo().equals("ERROR_NULO")){
+                consola.append("\nError Semántico en fila: " + fila + " valor nulo, no declarado.");
+                return new Expresion("ERROR_IGNORAR", "NULO", 0);
+            }
+            return resultante;
+        }
+        return new Expresion("ERROR", "NULO", 0);
+    }
+
+    private void print(Object c){
+        Expresion e = (Expresion)c;
+        String texto = c.getValor().toString();
+        consola.append("\n" + texto + "\n");
+    }
+
+
+
+:}
+
+
+terminal inicio, ultimo, result, score, clases, variables, metodos, comentarios, nombre, tipo;
+terminal funcion, clase, parametros, texto, entero, caracter, doble, cadena, bool, car;
+terminal mas, menos, div, por, modulo, abrepar, abrecor, cierrapar, cierracor, strng;
+terminal menor, mayor, menorigual, mayorigual, comparar, noes, aumento, menguar, id, print;
+terminal igualmas, igualmenos, igualpor, igual, and, or, not, punto, puntocoma, num, numdecimal;
+
+non terminal EPSILON, INICIO, LLAMADA, INSTRUCCION, TIPO, DECLARACION, ASIGOP;
+non terminal ASIGNACION, TYPE, ASIGTIP, AUMENTO, P, PRINTLN, E, C, RES;
+non terminal UNO, DOS, ARRAY;
+
+precedence left mas, menos;
+precedence left por, div, modulo;
+
+precedence left comparar, noes, mayorigual, menorigual, mayor, menor;
+precedence left or;
+precedence left and;
+precedence left not;
+
+
+start with INICIO;
+
+
+EPSILON ::= ;
+
+INICIO ::=  LLAMADA
+            |error LLAMADA;
+
+LLAMADA ::= LLAMADA inicio INSTRUCCION ultimo
+            |inicio INSTRUCCION ultimo;
+
+INSTRUCCION ::= INSTRUCCION TIPO puntocoma
+                |TIPO puntocoma;
+
+TIPO ::=    ASIGNACION
+            |DECLARACION
+            |PRINTLN
+            |AUMENTO
+            |error;
+
+DECLARACION ::= TYPE id:a ASIGOP:b {: ingresarSimbolo(currentType, a.toString, b, aright); :};
+
+ASIGOP ::=  igual C:a {: RESULT = a;:}
+            |EPSILON {: RESULT = new Expresion("", "NULO", 0); :};
+
+ASIGNACION ::=  id:b ASIGTIP:c C:a {:asignarSimbolo(b.toString(), c, a);:};
+
+TYPE ::=    bool {:currentType = "bool"; :}
+            |caracter {:currentType = "caracter";:}
+            |cadena  {:currentType = "cadena";:}
+            |doble {:currentType = "decimal";:}
+            |entero {:currentType = "entero";:}; 
+
+ASIGTIP ::= igual {: RESULT = 0;:}
+            |igualmas {: RESULT = 1;:}
+            |igualmenos {: RESULT = 2;:}
+            |igualpor {: RESULT = 3;:};
+
+AUMENTO ::= id P;
+
+P ::=   aumento
+        |menguar;
+
+PRINTLN ::=   print abrepar C:a cierrapar {: print(a);:};
+
+E ::=   E:a modulo E:b {: RESULT = operacion(a,b,4,aright); :}
+        |E:a por E:b {: RESULT = operacion(a,b,3,aright); :}
+        |E:a div E:b {: RESULT = operacion(a,b,2,aright); :}
+        |E:a menos E:b {:RESULT = operacion(a,b,1,aright):}
+        |E:a mas E:b {: RESULT = operacion(a,b,0,aright); :}
+        |num:a {: Expresion as = new Expresion("entero", a.toString(), aright);
+                    RESULT = as;:}
+        |numdecimal:a {: RESULT = new Expresion("decimal", a.toString(), aright);:}
+        |strng:a {: RESULT = new Expresion("cadena", a.toString(), aright);:}
+        |id:a {: RESULT = obtenerValor(a.toString());:} 
+        |menos E
+        |RES:a {:RESULT = a;:}
+        |abrepar C:a cierrapar {:RESULT = a;:};
+
+C ::=   C and C
+        |C or C
+        |E menor E
+        |E mayor E
+        |E menorigual E
+        |E mayorigual E
+        |E comparar E
+        |E noes E
+        |E:a {:RESULT = a;:}
+        |not C
+        |car:a {:RESULT = new Expresion("caracter", "" + a, aright);:};
+
+RES ::= result:a punto UNO {: RESULT = obtenerResult(clasificacion, index, atributos, scr, aright); src = false; :} ;
+
+UNO ::= score {: scr = true; :}
+        |clases ARRAY punto DOS {: clasificacion = "Clases"; :}
+        |variables ARRAY punto DOS {: clasificacion = "Variables"; :}
+        |metodos ARRAY punto DOS {: clasificacion = "Metodos"; :}
+        |comentarios ARRAY punto DOS {: clasificacion = "Comentarios"; :};
+
+DOS ::= nombre {: atributo = "Nombre"; :}
+        |tipo {: atributo = "Tipo"; :}
+        |funcion {: atributo = "funcion"; :}
+        |clase {: atributo = "Clase"; :}
+        |parametros {: atributo = "Parametros"; :}
+        |texto {: atributo = "texto"; :};
+
+ARRAY ::=   abrecor C:a cierracor {: index = obtenerIndice(a, aright); :}
+            |EPSILON {: index = 0; :};

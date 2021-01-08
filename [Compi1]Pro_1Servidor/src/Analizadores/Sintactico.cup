@@ -1,0 +1,193 @@
+package Analizadores;
+
+import java_cup.runtime.Symbol;
+import compi1.pro_1servidor.*;
+import Objetos.*;
+
+
+//PARSER 
+parser code
+{://Codigo visible
+    
+    public void syntax_error(Symbol s){
+        System.out.println("Error R de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1) );
+     //   Inicio.lisErrores.add("Error de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1)+" Se esperaba otro token\n");       
+    }
+
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{ 
+        System.out.println("Error NR de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1) );
+    }
+
+:}
+
+action code
+{://Codigo de usuario
+    String tmp="";
+:}
+
+//terminales***************
+terminal Tkn_nombre, Tkn_telefono,Tkn_dolar, Tkn_request, Tkn_ide, Tkn_crearUsuario, Tkn_menos,  Tkn_apellido, Tkn_password,Tkn_inicioUsuario;
+terminal Tkn_email, Tkn_direccion,Tkn_tipo,Tkn_codigo,Tkn_propietario,Tkn_img,Tkn_igual,Tkn_get,Tkn_coma,Tkn_cantidad,Tkn_marca,Tkn_tamaño,Tkn_sucursal, Tkn_color;
+terminal Tkn_parA,Tkn_parC,Tkn_llaA,Tkn_llaC,Tkn_mas,Tkn_por,Tkn_div,Tkn_Rq,Tkn_Ptn,Tkn_query,Tkn_extraer,Tkn_de,Tkn_donde,Tkn_puntocoma;
+terminal String Tkn_entero,Tkn_id,Tkn_cadena,Tkn_tienda,Tkn_producto, Tkn_precio;
+
+//noterminales********************
+nonterminal INICIO, S,SS,SENTENCIAINTERIORREQUEST,SENTENCIAINTERIORCREARUSER,ATRUBUTOSUSER,SENTENCIAINICIOUSER,SENTENCIACREARTIENDA,ATRIBUTOTIENDA;
+nonterminal MODIFICARTIENDA,ATRIBUTOMODIFICAR,SENTENCIACREARPRODUCTO,ATRIBUTOPRODUCTO,MODIFICARPRODUCTO,ATRIBUTOMODIFICARPRODUCTO,SENTENCIAQUERY,CONDICION,COND;
+nonterminal String OPERACIONES,OPER,VALU;
+
+precedence left Tkn_mas, Tkn_menos;
+precedence left Tkn_por, Tkn_div;
+
+start with INICIO;
+
+INICIO::=S
+         |SS
+;
+
+SS::=SS Tkn_dolar Tkn_query Tkn_dolar  Tkn_extraer Tkn_de   SENTENCIAQUERY     Tkn_dolar Tkn_query Tkn_menos Tkn_dolar
+     |  Tkn_dolar Tkn_query Tkn_dolar  Tkn_extraer Tkn_de   SENTENCIAQUERY     Tkn_dolar Tkn_query Tkn_menos Tkn_dolar
+;
+SENTENCIAQUERY::=VALU:cons Tkn_puntocoma {:ConsoleServer.ResultadoConsulta(cons);:}
+                //|VALU:cons Tkn_donde {:ConsoleServer.setTabla(cons);:} CONDICION Tkn_puntocoma
+;/*
+CONDICION::=CONDICION COND
+            |COND
+;
+COND::=
+;*/
+
+/////////////////////sentencia normal
+S::=S Tkn_dolar Tkn_request Tkn_dolar SENTENCIAINTERIORREQUEST Tkn_dolar Tkn_request Tkn_menos Tkn_dolar
+    | Tkn_dolar Tkn_request Tkn_dolar SENTENCIAINTERIORREQUEST Tkn_dolar Tkn_request Tkn_menos Tkn_dolar
+;
+
+VALU::=Tkn_producto:val{:RESULT=val;:}
+       |Tkn_tienda:val{:RESULT=val;:}
+       |Tkn_id:val{:RESULT=val;:}
+;
+SENTENCIAINTERIORREQUEST::=Tkn_dolar Tkn_crearUsuario Tkn_dolar
+                                                                {:
+                                                                    ConsoleServer.usuarios.add(new Usuario());
+                                                                :} SENTENCIAINTERIORCREARUSER Tkn_dolar {:
+                                                                                                RegistroEstatico.comprobarExisteciaUser();
+                                                                                                :} Tkn_crearUsuario Tkn_menos Tkn_dolar
+                            |Tkn_dolar Tkn_inicioUsuario Tkn_dolar  SENTENCIAINICIOUSER  Tkn_dolar{:RegistroEstatico.comprobarLogin();:} Tkn_inicioUsuario Tkn_menos Tkn_dolar
+                            |Tkn_dolar Tkn_tienda Tkn_tipo Tkn_igual Tkn_cadena:accion Tkn_dolar  SENTENCIACREARTIENDA  Tkn_dolar{:
+                                                                                                                                    RegistroEstatico.CrearModificarTienda(accion);
+                                                                                                                                  :} Tkn_tienda Tkn_menos Tkn_dolar
+                            |Tkn_dolar Tkn_get Tkn_tipo Tkn_igual Tkn_cadena Tkn_propietario Tkn_igual Tkn_entero:idpro Tkn_menos Tkn_dolar{:RegistroEstatico.MandarTiendas(idpro);:}
+                            |Tkn_dolar Tkn_tienda MODIFICARTIENDA Tkn_menos {:RegistroEstatico.CrearModificarTienda(ConsoleServer.arr[5]);:}Tkn_dolar
+                            |Tkn_dolar Tkn_producto Tkn_tipo Tkn_igual Tkn_cadena:accion Tkn_dolar  SENTENCIACREARPRODUCTO  Tkn_dolar{:
+                                                                                                                                        ConsoleServer.arrP[8]="10";
+                                                                                                                                        RegistroEstatico.CrearModificarProducto(accion);
+                                                                                                                                  :} Tkn_producto Tkn_menos Tkn_dolar
+                            |Tkn_dolar Tkn_get Tkn_tipo Tkn_igual Tkn_cadena Tkn_propietario Tkn_igual Tkn_entero Tkn_sucursal Tkn_igual Tkn_entero:idpro Tkn_menos Tkn_dolar{:RegistroEstatico.MandarProductos(idpro);:}
+                            |Tkn_dolar Tkn_producto MODIFICARPRODUCTO Tkn_menos {:RegistroEstatico.CrearModificarProducto(ConsoleServer.arrP[6]);:}Tkn_dolar
+                            |Tkn_dolar Tkn_tienda Tkn_ide Tkn_igual Tkn_entero:ent Tkn_dolar {:ConsoleServer.arrP[7]=ent;:} Tkn_producto MODIFICARPRODUCTO Tkn_menos {:RegistroEstatico.CrearModificarProducto(ConsoleServer.arrP[6]);:}Tkn_dolar Tkn_dolar Tkn_dolar Tkn_tienda Tkn_menos Tkn_dolar
+;
+MODIFICARPRODUCTO::=MODIFICARPRODUCTO ATRIBUTOMODIFICARPRODUCTO
+                    |ATRIBUTOMODIFICARPRODUCTO
+;
+ATRIBUTOMODIFICARPRODUCTO::=Tkn_tipo Tkn_igual Tkn_cadena:val{:ConsoleServer.arrP[6]=val;:}
+                    |Tkn_coma
+                    |Tkn_codigo Tkn_igual Tkn_entero:val{:ConsoleServer.arrP[0]=val;:}
+                    |Tkn_nombre Tkn_igual Tkn_cadena:val{:ConsoleServer.arrP[1]=val;:}
+                    |Tkn_cantidad Tkn_igual OPERACIONES:val{:ConsoleServer.arrP[2]=val;:}
+                    |Tkn_marca Tkn_igual Tkn_cadena:val{:ConsoleServer.arrP[3]=val;:}
+                    |Tkn_color Tkn_igual Tkn_cadena:val{:ConsoleServer.arrP[4]=val;:}
+                    |Tkn_tamaño Tkn_igual OPERACIONES:val{:ConsoleServer.arrP[5]=val;:}
+                    |Tkn_sucursal Tkn_igual Tkn_entero:val{:ConsoleServer.arrP[7]=val;:}
+                    |Tkn_precio Tkn_igual OPERACIONES:val{:ConsoleServer.arrP[8]=val;:}
+;
+SENTENCIACREARPRODUCTO::=SENTENCIACREARPRODUCTO ATRIBUTOPRODUCTO
+                        |ATRIBUTOPRODUCTO
+;
+ATRIBUTOPRODUCTO::=Tkn_dolar Tkn_codigo Tkn_dolar  Tkn_entero:codi {:ConsoleServer.arrP[0]=codi;:} Tkn_dolar Tkn_codigo Tkn_menos Tkn_dolar
+                |Tkn_dolar Tkn_nombre Tkn_dolar    Tkn_cadena:nom {:ConsoleServer.arrP[1]=nom;:} Tkn_dolar Tkn_nombre Tkn_menos Tkn_dolar
+                |Tkn_dolar Tkn_cantidad Tkn_dolar  OPERACIONES:resul {:ConsoleServer.arrP[2]=resul;:} Tkn_dolar Tkn_cantidad Tkn_menos Tkn_dolar
+                |Tkn_dolar Tkn_marca Tkn_dolar     Tkn_cadena:nom {:ConsoleServer.arrP[3]=nom;:} Tkn_dolar Tkn_marca Tkn_menos Tkn_dolar
+                |Tkn_dolar Tkn_color Tkn_dolar     Tkn_cadena:dire {:ConsoleServer.arrP[4]=dire;:} Tkn_dolar Tkn_color Tkn_menos Tkn_dolar
+                |Tkn_dolar Tkn_tamaño Tkn_dolar    OPERACIONES:resul {:ConsoleServer.arrP[5]=resul;:} Tkn_dolar Tkn_tamaño Tkn_menos Tkn_dolar
+                |Tkn_dolar Tkn_img Tkn_dolar       Tkn_cadena:pathimg {:ConsoleServer.arrP[6]=pathimg;:} Tkn_dolar Tkn_img Tkn_menos Tkn_dolar
+                |Tkn_dolar Tkn_sucursal Tkn_dolar  Tkn_entero:tel {:ConsoleServer.arrP[7]=tel;:} Tkn_dolar Tkn_sucursal Tkn_menos Tkn_dolar
+                |Tkn_dolar Tkn_precio Tkn_dolar  OPERACIONES:resul {:ConsoleServer.arrP[8]=resul;:} Tkn_dolar Tkn_precio Tkn_menos Tkn_dolar
+;
+OPERACIONES::=OPER:so{:RESULT=so;:}
+           |Tkn_llaA OPER:so Tkn_llaC{:RESULT=so;:}
+;
+
+OPER::= OPER:a Tkn_mas OPER:b{:RESULT=""+(Float.parseFloat(a)+Float.parseFloat(b));:}
+        |OPER:a Tkn_menos OPER:b{:RESULT=""+(Float.parseFloat(a)-Float.parseFloat(b));:}
+        |OPER:a Tkn_por OPER:b{:RESULT=""+(Float.parseFloat(a)*Float.parseFloat(b));:}
+        |OPER:a Tkn_div OPER:b{:RESULT=""+(Float.parseFloat(a)/Float.parseFloat(b));:}
+        |Tkn_entero:a{:RESULT=a;:}
+        |Tkn_parA OPER:a Tkn_parC{:RESULT=a;:}
+        |Tkn_Ptn Tkn_parA OPER:ot Tkn_parC {:RESULT=""+Math.pow(Double.parseDouble(ot), 2);:}
+        |Tkn_Rq Tkn_parA OPER:ot Tkn_parC {:RESULT=""+Math.sqrt(Double.parseDouble(ot));:}
+        
+;
+
+MODIFICARTIENDA::=MODIFICARTIENDA ATRIBUTOMODIFICAR
+                  |ATRIBUTOMODIFICAR
+;
+ATRIBUTOMODIFICAR::=Tkn_tipo Tkn_igual Tkn_cadena:val{:ConsoleServer.arr[5]=val;:}
+                    |Tkn_coma
+                    |Tkn_codigo Tkn_igual Tkn_entero:val{:ConsoleServer.arr[0]=val;:}
+                    |Tkn_propietario Tkn_igual Tkn_entero:val{:ConsoleServer.arr[1]=val;:}
+                    |Tkn_nombre Tkn_igual Tkn_cadena:val{:ConsoleServer.arr[2]=val;:}
+                    |Tkn_direccion Tkn_igual Tkn_cadena:val{:ConsoleServer.arr[3]=val;:}
+                    |Tkn_telefono Tkn_igual Tkn_entero:val{:ConsoleServer.arr[4]=val;:}
+;
+SENTENCIACREARTIENDA::=SENTENCIACREARTIENDA ATRIBUTOTIENDA
+                       |ATRIBUTOTIENDA
+;
+ATRIBUTOTIENDA::=Tkn_dolar Tkn_codigo Tkn_dolar       Tkn_entero:codi {:ConsoleServer.arr[0]=codi;:} Tkn_dolar Tkn_codigo Tkn_menos Tkn_dolar
+                |Tkn_dolar Tkn_propietario Tkn_dolar  Tkn_entero:propie {:ConsoleServer.arr[1]=propie;:} Tkn_dolar Tkn_propietario Tkn_menos Tkn_dolar
+                |Tkn_dolar Tkn_nombre Tkn_dolar       Tkn_cadena:nom {:ConsoleServer.arr[2]=nom;:} Tkn_dolar Tkn_nombre Tkn_menos Tkn_dolar
+                |Tkn_dolar Tkn_direccion Tkn_dolar    Tkn_cadena:dire {:ConsoleServer.arr[3]=dire;:} Tkn_dolar Tkn_direccion Tkn_menos Tkn_dolar
+                |Tkn_dolar Tkn_telefono Tkn_dolar     Tkn_entero:tel {:ConsoleServer.arr[4]=tel;:} Tkn_dolar Tkn_telefono Tkn_menos Tkn_dolar
+                |Tkn_dolar Tkn_img Tkn_dolar          Tkn_cadena:pathimg {:ConsoleServer.arr[5]=pathimg;:} Tkn_dolar Tkn_img Tkn_menos Tkn_dolar
+;
+////////////////////////////////////////////////////////////////////////////////////////////////////ya
+SENTENCIAINICIOUSER::=SENTENCIAINICIOUSER Tkn_dolar Tkn_ide Tkn_dolar  Tkn_entero:valu{:RegistroEstatico.id=valu; :}  Tkn_dolar Tkn_ide Tkn_menos Tkn_dolar
+                      |                   Tkn_dolar Tkn_ide Tkn_dolar  Tkn_entero:valu {:RegistroEstatico.id=valu; :} Tkn_dolar Tkn_ide Tkn_menos Tkn_dolar
+                      |SENTENCIAINICIOUSER Tkn_dolar Tkn_password Tkn_dolar  Tkn_id:valu{:RegistroEstatico.pass=valu;:}  Tkn_dolar Tkn_password Tkn_menos Tkn_dolar
+                      |                    Tkn_dolar Tkn_password Tkn_dolar  Tkn_id:valu{:RegistroEstatico.pass=valu;:}  Tkn_dolar Tkn_password Tkn_menos Tkn_dolar
+;
+
+SENTENCIAINTERIORCREARUSER::=SENTENCIAINTERIORCREARUSER ATRUBUTOSUSER
+                             |ATRUBUTOSUSER
+;
+
+ATRUBUTOSUSER::= Tkn_dolar Tkn_ide          Tkn_dolar Tkn_entero:valu      Tkn_dolar Tkn_ide           Tkn_menos Tkn_dolar
+                              {:
+                                    ConsoleServer.usuarios.getLast().setId(Integer.parseInt(valu));
+                              :}
+                             |Tkn_dolar Tkn_nombre      Tkn_dolar Tkn_cadena:valu      Tkn_dolar Tkn_nombre       Tkn_menos Tkn_dolar
+                              {:
+                                    ConsoleServer.usuarios.getLast().setName(valu);
+                              :}
+                             |Tkn_dolar Tkn_apellido    Tkn_dolar Tkn_cadena:valu      Tkn_dolar Tkn_apellido     Tkn_menos Tkn_dolar
+                              {:
+                                    ConsoleServer.usuarios.getLast().setApellido(valu);
+                              :}
+                             |Tkn_dolar Tkn_password    Tkn_dolar Tkn_id:valu          Tkn_dolar Tkn_password     Tkn_menos Tkn_dolar
+                              {:
+                                   
+                                    ConsoleServer.usuarios.getLast().setPassword(valu);
+        
+                              :}
+                             |Tkn_dolar Tkn_telefono    Tkn_dolar Tkn_entero:valu      Tkn_dolar Tkn_telefono     Tkn_menos Tkn_dolar
+                              {:
+                                    ConsoleServer.usuarios.getLast().setTelefono(Integer.parseInt(valu));
+                              :}
+                             |Tkn_dolar Tkn_email       Tkn_dolar Tkn_id:valu          Tkn_dolar Tkn_email        Tkn_menos Tkn_dolar
+                              {:
+                                    ConsoleServer.usuarios.getLast().setCorreo(valu);
+                              :}
+                             |Tkn_dolar Tkn_direccion   Tkn_dolar Tkn_cadena:valu      Tkn_dolar Tkn_direccion    Tkn_menos Tkn_dolar
+                              {:
+                                    ConsoleServer.usuarios.getLast().setDireccion(valu);
+                              :}
+;

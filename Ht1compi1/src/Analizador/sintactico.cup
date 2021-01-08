@@ -1,0 +1,112 @@
+package Analizador;
+
+import java_cup.runtime.Symbol;
+
+//PARSER 
+parser code
+{://Codigo visible
+        
+    public void syntax_error(Symbol s){
+        System.out.println("Error R de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1) );
+    }
+
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{ 
+        System.out.println("Error NR de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1) );
+    }
+
+:}
+
+action code
+{://Codigo de usuario
+        Integer posicion=1;
+        Integer posicionInicial=0;
+        Integer cantidad=0;
+        boolean band=true;
+
+    String tmp="";
+:}
+
+
+terminal String ID,ENTERO;
+
+terminal PAR_A, PAR_C, COMA, PYCOMA, EXTRAER,SUMA,MUL,DIV,RES,LLA_A,LLA_C,Tkn_Ptn,Tkn_Rq;
+
+
+nonterminal  INICIO, SENTENCIAS,LIST, L,OPERA;
+nonterminal  String OPER;
+
+precedence left SUMA, RES;
+precedence left DIV, MUL;
+
+
+start with INICIO;
+
+INICIO ::= SENTENCIAS
+           |OPER:so{:System.out.println(so);:}
+           |LLA_A OPER:so LLA_C{:System.out.println(so);:}
+;
+
+
+OPER::= OPER:a SUMA OPER:b{:RESULT=""+(Float.parseFloat(a)+Float.parseFloat(b));:}
+        |OPER:a RES OPER:b{:RESULT=""+(Float.parseFloat(a)-Float.parseFloat(b));:}
+        |OPER:a MUL OPER:b{:RESULT=""+(Float.parseFloat(a)*Float.parseFloat(b));:}
+        |OPER:a DIV OPER:b{:RESULT=""+(Float.parseFloat(a)/Float.parseFloat(b));:}
+        |ENTERO:a{:RESULT=a;:}
+        |PAR_A OPER:a PAR_C SUMA PAR_A OPER:b PAR_C{:RESULT=""+(Float.parseFloat(a)+Float.parseFloat(b));:}
+        |PAR_A OPER:a PAR_C RES PAR_A OPER:b PAR_C{:RESULT=""+(Float.parseFloat(a)-Float.parseFloat(b));:}
+        |PAR_A OPER:a PAR_C MUL PAR_A OPER:b PAR_C{:RESULT=""+(Float.parseFloat(a)*Float.parseFloat(b));:}
+        |PAR_A OPER:a PAR_C DIV PAR_A OPER:b PAR_C{:RESULT=""+(Float.parseFloat(a)/Float.parseFloat(b));:}
+        |Tkn_Ptn PAR_A OPER:ot PAR_C {:RESULT=""+Math.pow(Double.parseDouble(ot), 2);:}
+        |Tkn_Rq PAR_A OPER:ot PAR_C {:RESULT=""+Math.sqrt(Double.parseDouble(ot));:}
+        
+;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SENTENCIAS ::= EXTRAER PAR_A LIST PAR_C PYCOMA
+            
+;
+
+LIST ::= LIST COMA L
+        | L
+        
+;
+
+L ::= ID:idi 
+            {:
+                
+                if((posicion-posicionInicial-1)>0 && cantidad>0 && band){
+                    System.out.println(idi);
+                    cantidad--;
+                }
+                posicion++;
+            :}
+      |ENTERO:num 
+            {:
+                
+                if(posicion==1)posicionInicial=Integer.parseInt(num);
+                else if(posicion==2)cantidad=Integer.parseInt(num);
+                
+                if(posicionInicial<0)System.out.println("Invalido Posicion inicial negativa");
+                if(cantidad<0)System.out.println("Invalido cantidad Negativa");
+
+                else if((posicion-posicionInicial-1)>0 && cantidad>0 && band){
+                    System.out.println(num);
+                    cantidad--;
+                }
+                posicion++;
+            :}
+;
+

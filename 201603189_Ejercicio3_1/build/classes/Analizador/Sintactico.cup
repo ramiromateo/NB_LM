@@ -1,0 +1,56 @@
+package Analizador;
+
+import java_cup.runtime.Symbol;
+import java.util.LinkedList;
+
+//PARSER 
+parser code
+{://Codigo visible
+    
+    public void syntax_error(Symbol s){
+        System.out.println("Error R de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1) );
+        //Inicio.lisErrores.add("Error de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1)+" Se esperaba otro token\n");       
+    }
+
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{ 
+        System.out.println("Error NR de sintaxis: "+ s.value +" Linea "+(s.left+1)+" columna "+(s.right+1) );
+    }
+    
+:}
+
+action code
+{://Codigo de usuario
+    
+:}
+
+terminal String ENTERO,Tkn_Coma,Tkn_CorA,Tkn_CorC;
+
+nonterminal String S,L;
+nonterminal LinkedList<String> E;
+
+start with S;
+
+S::=E:st{:System.out.println(st.get(0));:};
+
+E::=E:list Tkn_Coma L:li{:RESULT=list; RESULT.add(li);:}
+    |L:li{:RESULT=new LinkedList<>(); RESULT.add(li);:}
+;
+
+L::=ENTERO:ent{:RESULT=ent;:}
+    |Tkn_CorA Tkn_CorC{:RESULT="[]";:}
+    |Tkn_CorA E:st Tkn_CorC{:
+        if(st.size()>=2){
+            String ini=st.removeLast();
+            String fin=st.removeFirst();
+            st.addFirst(ini);
+            st.addLast(fin);
+        }
+        String Resultado="[";
+        for(String cad : st){
+
+            Resultado+=cad+((cad.equals(st.getLast()))?"":",");
+        }
+        Resultado+="]";
+        
+        RESULT=Resultado;:}
+;
